@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: folio-night-edition
+    runtime: node
+    plan: free
+    buildCommand: node reconstruct-folio.mjs && npm --prefix folio install
+    startCommand: npm --prefix folio start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
