@@ -1,6 +1,6 @@
 // Tiny CORS proxy for the MyAnimeList API (MAL blocks direct browser calls).
 // Deploy on Vercel. Only forwards to MAL hosts. Tokens pass through; nothing is stored.
-const ALLOW = ['myanimelist.net', 'api.myanimelist.net'];
+const ALLOW = ['myanimelist.net', 'api.myanimelist.net', 'api.mangadex.org'];
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

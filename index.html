@@ -156,8 +156,26 @@ const malState = {};
 
 /* ---------- helpers ---------- */
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(()=>el.classList.remove('on'), 2600); }
-const err = e => `<p class="mut">⚠ ${esc(e.message || e)}. If this says "Failed to fetch", the source is blocked on your network or the proxy isn't deployed.</p>`;
-async function jget(u, opt){ const r = await fetch(u, opt); if(!r.ok) throw new Error(r.status + ' from ' + new URL(u).host); return r.json(); }
+const err = e => `<p class="mut">⚠ ${esc(e.message || e)}. Check your connection, or that the Vercel proxy (/api/mal) is deployed.</p>`;
+async function jget(u, opt){
+  const s = String(u), host = new URL(s).host;
+  try{
+    const r = await fetch(s, opt);
+    if(!r.ok) throw new Error(r.status + ' from ' + host);
+    return await r.json();
+  }catch(e){
+    // Direct call blocked (CORS / ISP / network): retry through our own proxy.
+    if(e instanceof TypeError && host === 'api.mangadex.org' && /^https?:/.test(location.protocol)){
+      try{
+        const r = await fetch(proxied(s));
+        if(!r.ok) throw new Error(r.status + ' via proxy');
+        return await r.json();
+      }catch(e2){ throw new Error('Cannot reach MangaDex directly or through the proxy (' + (e2.message || e2) + ')'); }
+    }
+    if(e instanceof TypeError) throw new Error('Cannot reach ' + host);
+    throw e;
+  }
+}
 const ratings = () => S.adult ? ['safe','suggestive','erotica','pornographic'] : ['safe','suggestive','erotica'];
 async function md(path, params){
   const u = new URL(MD + path);
