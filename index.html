@@ -304,10 +304,16 @@ function loginView(){
   const file = location.protocol === 'file:';
   shell('mal', `<div class="box"><b style="color:var(--gold)">Sign in with MyAnimeList</b>
   ${file ? '<p>⚠ This page is opened as a local file. MAL login needs it hosted (see README).</p>' : ''}
-  ${S.malClientId || DEFAULT_CLIENT_ID ? '' : `<ol><li>Open <code>myanimelist.net/apiconfig</code> → Create ID</li><li>App Type: <b>other</b></li><li>App Redirect URL: <code>${esc(redirectUri())}</code></li><li>Paste the Client ID below</li></ol>`}
+  ${S.malClientId || DEFAULT_CLIENT_ID ? '' : `<ol><li>Tap <b>Sign in</b>: MAL's API page opens (log in there if asked)</li><li>Create ID → App Type: <b>other</b></li><li>App Redirect URL: <code>${esc(redirectUri())}</code> <button class="ghost" id="cp" style="padding:3px 10px;font-size:12px">Copy</button></li><li>Come back here, paste the Client ID, tap Sign in again</li></ol>`}
   ${DEFAULT_CLIENT_ID ? '<p class="mut">You will log in on myanimelist.net, then come back here.</p>' : `<input id="cid" placeholder="MAL Client ID" value="${esc(S.malClientId)}">`}
   <button id="go">Sign in with MAL</button></div>`);
-  $('#go').onclick = () => { if($('#cid')) S.malClientId = $('#cid').value.trim(); saveSettings(); malLogin(); };
+  if($('#cp')) $('#cp').onclick = () => { try{ navigator.clipboard.writeText(redirectUri()); toast('Redirect URL copied'); }catch{ toast('Copy failed, select it manually'); } };
+  $('#go').onclick = () => {
+    if($('#cid')) S.malClientId = $('#cid').value.trim();
+    saveSettings();
+    if(!S.malClientId){ window.open('https://myanimelist.net/apiconfig', '_blank', 'noopener'); toast('Create the app, then paste its Client ID here'); return; }
+    malLogin();
+  };
 }
 
 async function malListView(status){
