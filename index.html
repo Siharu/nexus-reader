@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0b0a0c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Nexus Reader</title>
+<style>
+:root{--bg:#0b0a0c;--s1:#141216;--s2:#1d1a20;--line:#2a262e;--tx:#e8e4dc;--mut:#8d8794;--red:#b3262e;--gold:#c9a24a}
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%}
+body{background:radial-gradient(1200px 600px at 50% -10%,#1d1014 0%,var(--bg) 62%) fixed;color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+.mut{color:var(--mut)}.pad{padding:24px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-family:Georgia,serif;letter-spacing:.04em;font-size:18px}
+.ring{width:18px;height:18px;border-radius:50%;border:2px solid var(--red);box-shadow:0 0 10px #b3262e66;display:inline-block}
+.ring.big{width:64px;height:64px;border-width:3px;box-shadow:0 0 30px #b3262e55}
+.badge{font-size:12px;color:var(--gold);border:1px solid #c9a24a55;border-radius:99px;padding:2px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55vw}
+.tabs{display:flex;gap:4px;padding:8px 12px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs a{padding:6px 14px;border-radius:8px;color:var(--mut);white-space:nowrap}
+.tabs a.on{background:var(--s2);color:var(--tx)}
+main{padding:16px;max-width:1100px;margin:0 auto}
+.search{display:flex;gap:8px;margin-bottom:16px}
+input[type=text],input:not([type]),select{background:var(--s1);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+input:focus,select:focus{outline:1px solid var(--gold)}
+button,.btn{background:var(--red);border:0;border-radius:8px;padding:10px 16px;cursor:pointer;display:inline-block;color:#fff}
+button.ghost,.btn.ghost{background:var(--s2);border:1px solid var(--line);color:var(--tx)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px}
+.card{display:flex;flex-direction:column;gap:6px}
+.card img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:8px;background:var(--s1);border:1px solid var(--line)}
+.card span{font-size:13px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card small{color:var(--gold);font-size:12px}
+.chips{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto}
+.chip{padding:5px 12px;border:1px solid var(--line);border-radius:99px;color:var(--mut);white-space:nowrap}
+.chip.on{border-color:var(--gold);color:var(--gold)}
+.gate{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
+.gate h1{font-family:Georgia,serif;font-weight:400;letter-spacing:.06em;font-size:30px}
+.opt{width:100%;max-width:360px;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:left;display:flex;flex-direction:column;gap:4px;cursor:pointer}
+.opt:hover{border-color:var(--red)}
+.opt b{font-size:17px;color:var(--gold)}.opt span{color:var(--mut);font-size:13px}
+.hero{display:flex;gap:16px;margin-bottom:16px}
+.hero img{width:120px;aspect-ratio:2/3;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:none}
+.hero h2{font-family:Georgia,serif;font-weight:400;font-size:22px;line-height:1.25}
+.desc{color:var(--mut);font-size:13px;white-space:pre-line;margin:8px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.ch{display:flex;justify-content:space-between;gap:10px;padding:11px 12px;border-bottom:1px solid var(--line)}
+.ch:hover{background:var(--s1)}
+.ch.read{color:var(--mut)}.ch small{color:var(--mut);white-space:nowrap}
+.set{display:flex;flex-direction:column;gap:14px;max-width:520px}
+.set label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--mut)}
+.set label.chk{flex-direction:row;align-items:center;gap:10px;color:var(--tx);font-size:15px}
+.set label.chk input{width:auto}
+code{background:var(--s2);padding:2px 6px;border-radius:6px;font-size:12px;word-break:break-all}
+.box{background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:16px;max-width:560px;display:flex;flex-direction:column;gap:12px}
+.box ol{padding-left:20px;color:var(--mut);font-size:14px;display:flex;flex-direction:column;gap:6px}
+/* reader */
+body.reading .top,body.reading .tabs{display:none}
+.rtop{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:#0b0a0cee;backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.rtop button{padding:6px 12px}
+#stage img{display:block;width:100%;max-width:900px;margin:0 auto;height:auto;background:#111;min-height:70vh}
+#stage img.ok{min-height:0}
+#stage.paged{display:flex;flex-direction:column;align-items:center;min-height:calc(100vh - 56px);cursor:pointer}
+#stage.paged img{max-height:calc(100vh - 90px);width:auto;max-width:100%;object-fit:contain;min-height:0}
+#pc{padding:8px;color:var(--mut);font-size:13px}
+.end{display:flex;gap:10px;justify-content:center;padding:36px 16px;flex-wrap:wrap}
+/* ---- visual layer ---- */
+.gate{position:relative;overflow:hidden;isolation:isolate}
+.gate>*{position:relative;z-index:2}
+.gate:before{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,#0b0a0c99 0%,#0b0a0c40 40%,#0b0a0cee 100%),var(--hero,none) center 30%/cover no-repeat;animation:push 40s ease-out infinite alternate}
+@keyframes push{from{transform:scale(1.02)}to{transform:scale(1.14)}}
+.fog{position:absolute;inset:-20%;z-index:0;pointer-events:none;background:radial-gradient(40% 35% at 25% 30%,#b3262e40,transparent 70%),radial-gradient(35% 40% at 78% 65%,#c9a24a26,transparent 70%);animation:drift 22s ease-in-out infinite alternate;filter:blur(24px)}
+.fog.f2{background:radial-gradient(45% 40% at 70% 20%,#5a121a55,transparent 70%),radial-gradient(30% 30% at 20% 80%,#b3262e2e,transparent 70%);animation-duration:31s;animation-direction:alternate-reverse}
+@keyframes drift{from{transform:translate3d(-4%,-2%,0) scale(1)}to{transform:translate3d(5%,4%,0) scale(1.12)}}
+.ember{position:absolute;bottom:-10px;z-index:1;width:3px;height:3px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);opacity:0;animation:rise linear infinite;pointer-events:none}
+.ember.r{background:var(--red);box-shadow:0 0 8px var(--red)}
+@keyframes rise{0%{transform:translate3d(0,0,0);opacity:0}10%{opacity:.9}100%{transform:translate3d(var(--dx),-105vh,0);opacity:0}}
+.sig{position:relative;width:64px;height:64px;margin-bottom:6px}
+.sig .ring.big{position:absolute;inset:0;animation:beat 2.4s ease-in-out infinite}
+.sig i{position:absolute;inset:0;border-radius:50%;border:2px solid var(--red);opacity:0;animation:ripple 2.4s ease-out infinite}
+.sig i:nth-child(2){animation-delay:.8s}.sig i:nth-child(3){animation-delay:1.6s}
+@keyframes beat{0%,100%{box-shadow:0 0 18px #b3262e55;opacity:1}50%{box-shadow:0 0 44px #b3262ecc;opacity:.78}}
+@keyframes ripple{0%{transform:scale(1);opacity:.7}100%{transform:scale(3.2);opacity:0}}
+.gate h1{background:linear-gradient(90deg,#e8e4dc,var(--gold),#e8e4dc);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite;text-shadow:none}
+@keyframes shine{to{background-position:200% 0}}
+.opt{transition:transform .2s,border-color .2s,box-shadow .2s;backdrop-filter:blur(6px);background:#141216cc}
+.opt:hover{transform:translateY(-3px);box-shadow:0 8px 30px #b3262e40}
+.ring{animation:beat 2.4s ease-in-out infinite}
+.card img{transition:transform .25s,box-shadow .25s,border-color .25s}
+.card:hover img{transform:translateY(-4px) scale(1.02);border-color:var(--gold);box-shadow:0 10px 26px #b3262e50}
+/* banner */
+#ban{position:relative;height:260px;border-radius:14px;overflow:hidden;margin-bottom:18px;border:1px solid var(--line)}
+.slide{position:absolute;inset:0;display:flex;align-items:flex-end;gap:16px;padding:18px;opacity:0;transition:opacity 1s;pointer-events:none}
+.slide.on{opacity:1;pointer-events:auto}
+.slide .bg{position:absolute;inset:-30px;background-size:cover;background-position:center 25%;filter:blur(22px) brightness(.45) saturate(1.2);transform:scale(1.1)}
+.slide.on .bg{animation:kb 14s ease-out forwards}
+@keyframes kb{to{transform:scale(1.25) translate3d(-2%,-2%,0)}}
+.slide:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#0b0a0cf0 0%,transparent 60%),linear-gradient(90deg,#0b0a0c99,transparent 70%)}
+.slide>*:not(.bg){position:relative;z-index:2}
+.slide img{height:200px;aspect-ratio:2/3;object-fit:cover;border-radius:8px;border:1px solid #c9a24a66;box-shadow:0 10px 30px #000a;flex:none}
+.slide h3{font-family:Georgia,serif;font-weight:400;font-size:24px;line-height:1.2;margin-bottom:6px;text-shadow:0 2px 12px #000}
+.slide p{font-size:12px;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px}
+.dotsnav{position:absolute;right:14px;top:12px;z-index:3;display:flex;gap:6px}
+.dotsnav b{width:8px;height:8px;border-radius:50%;background:#ffffff40;cursor:pointer}
+.dotsnav b.on{background:var(--red);box-shadow:0 0 8px var(--red)}
+@media(max-width:560px){#ban{height:220px}.slide img{height:150px}.slide h3{font-size:19px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--s2);border:1px solid var(--gold);padding:8px 16px;border-radius:99px;font-size:13px;z-index:20;opacity:0;pointer-events:none;transition:opacity .25s}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('nx_'+k); return v == null ? d : JSON.parse(v); }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem('nx_'+k, JSON.stringify(v)); }catch{} },
+  del(k){ try{ localStorage.removeItem('nx_'+k); }catch{} }
+};
+// Paste your MAL Client ID here once (myanimelist.net/apiconfig). Then login is just one button.
+const DEFAULT_CLIENT_ID = '';
+const S = Object.assign({ lang:'en', adult:false, dataSaver:false, readerMode:'strip', autoSync:true, malClientId:'', proxy:'/api/mal' }, store.get('settings', {}));
+if(DEFAULT_CLIENT_ID) S.malClientId = DEFAULT_CLIENT_ID;
+S.mode = store.get('mode', null);
+function applyHero(){ const h = store.get('hero', ''); if(h && /^data:image\//.test(h)) document.documentElement.style.setProperty('--hero', `url("${h}")`); else document.documentElement.style.removeProperty('--hero'); }
+applyHero();
+function pickHero(file){
+  const img = new Image(), url = URL.createObjectURL(file);
+  img.onload = () => {
+    const w = Math.min(1600, img.width), h = Math.round(img.height * w / img.width);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').drawImage(img, 0, 0, w, h);
+    try{ localStorage.setItem('nx_hero', JSON.stringify(c.toDataURL('image/jpeg', .82))); applyHero(); toast('Artwork set'); }
+    catch{ toast('Image too large to store'); }
+    URL.revokeObjectURL(url); settingsView();
+  };
+  img.onerror = () => toast('Could not read that image');
+  img.src = url;
+}
+const saveSettings = () => { const {mode, ...rest} = S; store.set('settings', rest); };
+
+const MD = 'https://api.mangadex.org';
+const MAL = 'https://api.myanimelist.net/v2';
+const app = $('#app');
+let nav = 0, keyH = null;
+const malState = {};
+
+/* ---------- helpers ---------- */
+function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(()=>el.classList.remove('on'), 2600); }
+const err = e => `<p class="mut">⚠ ${esc(e.message || e)}. If this says "Failed to fetch", the source is blocked on your network or the proxy isn't deployed.</p>`;
+async function jget(u, opt){ const r = await fetch(u, opt); if(!r.ok) throw new Error(r.status + ' from ' + new URL(u).host); return r.json(); }
+const ratings = () => S.adult ? ['safe','suggestive','erotica','pornographic'] : ['safe','suggestive','erotica'];
+async function md(path, params){
+  const u = new URL(MD + path);
+  for(const [k, v] of Object.entries(params || {})){
+    if(Array.isArray(v)) v.forEach(x => u.searchParams.append(k + '[]', x)); else u.searchParams.set(k, v);
+  }
+  return jget(u);
+}
+const titleOf = m => m.attributes.title.en || Object.values(m.attributes.title)[0] || 'Untitled';
+const cover = (m, size) => { const f = (m.relationships.find(r => r.type === 'cover_art') || {}).attributes; return f && f.fileName ? `https://uploads.mangadex.org/covers/${m.id}/${f.fileName}.${size}.jpg` : ''; };
+const mCard = m => `<a class="card" href="#/title/${m.id}"><img loading="lazy" src="${cover(m,256)}" alt=""><span>${esc(titleOf(m))}</span></a>`;
+
+function shell(active, inner){
+  const mal = S.mode === 'mal', user = store.get('user', '');
+  const tabs = mal ? [['mal','My list'],['malsearch','Search'],['settings','Settings']] : [['browse','Browse'],['library','Library'],['settings','Settings']];
+  app.innerHTML = `<header class="top"><a class="brand" href="#/"><span class="ring"></span>Nexus Reader</a><a class="badge" id="swm" href="#/" title="Switch mode">${mal ? 'MAL Client' + (user ? ' · ' + esc(user) : '') : 'Manga Crawler'} ⇄</a></header>
+  <nav class="tabs">${tabs.map(([h,l]) => `<a href="#/${h}" class="${active===h?'on':''}">${l}</a>`).join('')}</nav><main>${inner}</main>`;
+  $('#swm').onclick = e => { e.preventDefault(); store.del('mode'); S.mode = null; route(); };
+}
+
+/* ---------- MangaDex chapters ---------- */
+const chapCache = {};
+async function chapters(id){
+  const key = id + S.lang + S.adult;
+  if(chapCache[key]) return chapCache[key];
+  let all = [], offset = 0, total = 1;
+  for(let i = 0; i < 6 && offset < total; i++){
+    const d = await md(`/manga/${id}/feed`, { limit:500, offset, translatedLanguage:[S.lang], contentRating:ratings(), 'order[chapter]':'asc', includeExternalUrl:'0' });
+    all.push(...d.data); total = d.total; offset += 500;
+  }
+  const seen = new Set(), out = [];
+  for(const c of all){
+    if(!c.attributes.pages) continue;
+    const k = c.attributes.chapter != null ? 'n' + c.attributes.chapter : 'id' + c.id;
+    if(seen.has(k)) continue;
+    seen.add(k); out.push(c);
+  }
+  return (chapCache[key] = out);
+}
+
+/* ---------- MAL auth (OAuth2 PKCE) ---------- */
+const token = () => (store.get('tok', null) || {}).access;
+const proxied = u => `${S.proxy || '/api/mal'}?u=${encodeURIComponent(u)}`;
+const rand = n => { const c = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'; return [...crypto.getRandomValues(new Uint8Array(n))].map(x => c[x % c.length]).join(''); };
+const redirectUri = () => location.origin + location.pathname;
+
+function malLogin(){
+  if(!S.malClientId) return toast('Add your MAL Client ID first');
+  const verifier = rand(96), state = rand(16);
+  store.set('pkce', { verifier, state });
+  const q = new URLSearchParams({ response_type:'code', client_id:S.malClientId, code_challenge:verifier, code_challenge_method:'plain', state, redirect_uri:redirectUri() });
+  location.href = 'https://myanimelist.net/v1/oauth2/authorize?' + q;
+}
+async function tokenRequest(params){
+  const r = await fetch(proxied('https://myanimelist.net/v1/oauth2/token'), { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(params).toString() });
+  if(!r.ok) throw new Error('MAL token error ' + r.status);
+  const d = await r.json();
+  store.set('tok', { access:d.access_token, refresh:d.refresh_token, exp:Date.now() + d.expires_in * 1000 });
+}
+async function malExchange(code, state){
+  const pk = store.get('pkce', null);
+  if(!pk || pk.state !== state) throw new Error('Login state mismatch');
+  await tokenRequest({ client_id:S.malClientId, grant_type:'authorization_code', code, redirect_uri:redirectUri(), code_verifier:pk.verifier });
+  store.del('pkce');
+  const me = await malApi('/users/@me'); store.set('user', me.name);
+}
+async function malRefresh(){
+  const t = store.get('tok', null);
+  if(!t || !t.refresh) throw new Error('Session expired');
+  await tokenRequest({ client_id:S.malClientId, grant_type:'refresh_token', refresh_token:t.refresh });
+}
+function malLogout(){ store.del('tok'); store.del('user'); }
+async function malApi(path, opt = {}, retried){
+  let t = store.get('tok', null);
+  if(!t) throw new Error('Not signed in');
+  if(t.exp - 60000 < Date.now()){ await malRefresh(); t = store.get('tok'); }
+  const url = path.startsWith('http') ? path : MAL + path;
+  const headers = { Authorization:'Bearer ' + t.access };
+  let body;
+  if(opt.body){ headers['Content-Type'] = 'application/x-www-form-urlencoded'; body = opt.body.toString(); }
+  const r = await fetch(proxied(url), { method:opt.method || 'GET', headers, body });
+  if(r.status === 401 && !retried){ try{ await malRefresh(); }catch{ malLogout(); throw new Error('MAL session expired, sign in again'); } return malApi(path, opt, true); }
+  if(!r.ok) throw new Error('MAL ' + r.status);
+  return r.json();
+}
+async function syncMal(mal, numStr){
+  if(S.mode !== 'mal' || !mal || !S.autoSync) return;
+  const n = Math.floor(parseFloat(numStr));
+  if(!isFinite(n)) return;
+  const cur = malState[mal] || {};
+  if((cur.num_chapters_read || 0) >= n) return;
+  const body = new URLSearchParams({ num_chapters_read:n });
+  if(!cur.status || cur.status === 'plan_to_read') body.set('status', 'reading');
+  try{ malState[mal] = await malApi(`/manga/${mal}/my_list_status`, { method:'PATCH', body }); toast(`MAL updated · ${n} chapters read`); }
+  catch(e){ toast('MAL sync failed'); }
+}
+
+/* ---------- views ---------- */
+function gate(){
+  app.innerHTML = `<div class="gate"><div class="fog"></div><div class="fog f2"></div><div class="sig"><i></i><i></i><i></i><div class="ring big"></div></div><h1>Nexus Reader</h1><p class="mut">Choose how you want to read.</p>
+  <button class="opt" data-m="crawler"><b>Manga Crawler</b><span>No account. Search and read straight from MangaDex.</span></button>
+  <button class="opt" data-m="mal"><b>MAL Client</b><span>Sign in with MyAnimeList. Your list, progress synced back.</span></button></div>`;
+  const g = app.querySelector('.gate');
+  for(let i = 0; i < 26; i++){
+    const e = document.createElement('span');
+    e.className = 'ember' + (i % 3 ? '' : ' r');
+    e.style.cssText = `left:${Math.random()*100}%;--dx:${(Math.random()*80-40).toFixed(0)}px;animation-duration:${(7+Math.random()*9).toFixed(1)}s;animation-delay:${(Math.random()*-14).toFixed(1)}s;width:${2+Math.random()*3}px;height:${2+Math.random()*3}px`;
+    g.appendChild(e);
+  }
+  app.querySelectorAll('.opt').forEach(b => b.onclick = () => { S.mode = b.dataset.m; store.set('mode', S.mode); history.replaceState(null, '', '#/'); route(); });
+}
+
+async function browseView(q){
+  const my = ++nav;
+  shell('browse', `${q ? '' : '<div id="ban"></div>'}<form class="search" id="sf"><input id="q" placeholder="Search manga…" value="${esc(q)}"><button>Search</button></form><div id="res" class="grid"><p class="mut">Loading…</p></div>`);
+  $('#sf').onsubmit = e => { e.preventDefault(); location.hash = '#/browse?q=' + encodeURIComponent($('#q').value.trim()); };
+  try{
+    const p = { limit:30, includes:['cover_art'], contentRating:ratings(), availableTranslatedLanguage:[S.lang], hasAvailableChapters:'true' };
+    if(q){ p.title = q; p['order[relevance]'] = 'desc'; } else p['order[followedCount]'] = 'desc';
+    const d = await md('/manga', p);
+    if(my !== nav) return;
+    $('#res').innerHTML = d.data.map(mCard).join('') || '<p class="mut">Nothing found.</p>';
+    if(!q && $('#ban') && d.data.length) banner(d.data.slice(0, 5), my);
+  }catch(e){ if(my === nav) $('#res').innerHTML = err(e); }
+}
+
+function banner(list, my){
+  const el = $('#ban'); let i = 0;
+  el.innerHTML = list.map((m, n) => `<div class="slide ${n ? '' : 'on'}"><div class="bg" style="background-image:url('${cover(m,512)}')"></div><img src="${cover(m,512)}" alt=""><div><p>Trending</p><h3>${esc(titleOf(m))}</h3><a class="btn" href="#/title/${m.id}">Read now</a></div></div>`).join('') + `<div class="dotsnav">${list.map((_, n) => `<b class="${n ? '' : 'on'}" data-i="${n}"></b>`).join('')}</div>`;
+  const go = n => { i = n; el.querySelectorAll('.slide').forEach((s, k) => s.classList.toggle('on', k === n)); el.querySelectorAll('.dotsnav b').forEach((b, k) => b.classList.toggle('on', k === n)); };
+  el.querySelectorAll('.dotsnav b').forEach(b => b.onclick = () => go(+b.dataset.i));
+  const t = setInterval(() => { if(my !== nav || !document.body.contains(el)) return clearInterval(t); go((i + 1) % list.length); }, 6500);
+}
+
+function libraryView(){
+  ++nav;
+  const lib = store.get('lib', {}), prog = store.get('prog', {});
+  const ids = Object.keys(lib);
+  shell('library', ids.length ? `<div class="grid">${ids.map(id => `<a class="card" href="#/title/${id}"><img src="${esc(lib[id].cover)}" alt=""><span>${esc(lib[id].title)}</span>${prog[id] && prog[id].num ? `<small>Ch. ${esc(prog[id].num)}</small>` : ''}</a>`).join('')}</div>` : '<p class="mut">Nothing saved yet. Open a title and hit Save.</p>');
+}
+
+function loginView(){
+  ++nav;
+  const file = location.protocol === 'file:';
+  shell('mal', `<div class="box"><b style="color:var(--gold)">Sign in with MyAnimeList</b>
+  ${file ? '<p>⚠ This page is opened as a local file. MAL login needs it hosted (see README).</p>' : ''}
+  ${S.malClientId || DEFAULT_CLIENT_ID ? '' : `<ol><li>Open <code>myanimelist.net/apiconfig</code> → Create ID</li><li>App Type: <b>other</b></li><li>App Redirect URL: <code>${esc(redirectUri())}</code></li><li>Paste the Client ID below</li></ol>`}
+  ${DEFAULT_CLIENT_ID ? '<p class="mut">You will log in on myanimelist.net, then come back here.</p>' : `<input id="cid" placeholder="MAL Client ID" value="${esc(S.malClientId)}">`}
+  <button id="go">Sign in with MAL</button></div>`);
+  $('#go').onclick = () => { if($('#cid')) S.malClientId = $('#cid').value.trim(); saveSettings(); malLogin(); };
+}
+
+async function malListView(status){
+  if(!token()) return loginView();
+  const my = ++nav;
+  const sts = [['reading','Reading'],['plan_to_read','Plan'],['completed','Done'],['on_hold','Hold'],['dropped','Dropped']];
+  shell('mal', `<div class="chips">${sts.map(([k,l]) => `<a class="chip ${k===status?'on':''}" href="#/mal?s=${k}">${l}</a>`).join('')}</div><div id="res" class="grid"><p class="mut">Loading your list…</p></div>`);
+  try{
+    let items = [], url = `/users/@me/mangalist?status=${status}&sort=list_updated_at&limit=100&fields=list_status,num_chapters&nsfw=true`;
+    for(let i = 0; i < 5 && url; i++){ const d = await malApi(url); items.push(...d.data); url = (d.paging && d.paging.next) || null; }
+    if(my !== nav) return;
+    $('#res').innerHTML = items.map(({node:n, list_status:ls}) => `<a class="card" href="#/find/${n.id}?q=${encodeURIComponent(n.title)}"><img loading="lazy" src="${esc((n.main_picture||{}).medium||'')}" alt=""><span>${esc(n.title)}</span><small>Ch. ${ls.num_chapters_read}${n.num_chapters ? ' / ' + n.num_chapters : ''}</small></a>`).join('') || '<p class="mut">Empty.</p>';
+  }catch(e){ if(my === nav) $('#res').innerHTML = err(e); }
+}
+
+async function malSearchView(q){
+  if(!token()) return loginView();
+  const my = ++nav;
+  shell('malsearch', `<form class="search" id="sf"><input id="q" placeholder="Search MyAnimeList (3+ letters)…" value="${esc(q)}"><button>Search</button></form><div id="res" class="grid"></div>`);
+  $('#sf').onsubmit = e => { e.preventDefault(); location.hash = '#/malsearch?q=' + encodeURIComponent($('#q').value.trim()); };
+  if(q.length < 3) return;
+  $('#res').innerHTML = '<p class="mut">Searching…</p>';
+  try{
+    const d = await malApi(`/manga?q=${encodeURIComponent(q)}&limit=30&nsfw=true&fields=num_chapters`);
+    if(my !== nav) return;
+    $('#res').innerHTML = d.data.map(({node:n}) => `<a class="card" href="#/find/${n.id}?q=${encodeURIComponent(n.title)}"><img loading="lazy" src="${esc((n.main_picture||{}).medium||'')}" alt=""><span>${esc(n.title)}</span></a>`).join('') || '<p class="mut">Nothing found.</p>';
+  }catch(e){ if(my === nav) $('#res').innerHTML = err(e); }
+}
+
+async function findView(malId, q){
+  const my = ++nav;
+  shell('mal', '<p class="mut">Finding a readable source…</p>');
+  try{
+    const d = await md('/manga', { title:q, limit:10, includes:['cover_art'], contentRating:ratings() });
+    if(my !== nav) return;
+    const hit = d.data.find(m => String((m.attributes.links || {}).mal) === String(malId));
+    if(hit){ location.replace(`#/title/${hit.id}?mal=${malId}`); return; }
+    $('main').innerHTML = d.data.length
+      ? `<p class="mut" style="margin-bottom:12px">No exact match. Pick the right one:</p><div class="grid">${d.data.map(m => `<a class="card" href="#/title/${m.id}?mal=${malId}"><img src="${cover(m,256)}" alt=""><span>${esc(titleOf(m))}</span></a>`).join('')}</div>`
+      : '<p class="mut">Not found on MangaDex.</p>';
+  }catch(e){ if(my === nav) $('main').innerHTML = err(e); }
+}
+
+async function titleView(id, mal){
+  const my = ++nav;
+  shell(S.mode === 'mal' ? 'mal' : 'browse', '<p class="mut">Loading…</p>');
+  try{
+    const [d, chs] = await Promise.all([
+      md('/manga/' + id, { includes:['cover_art'] }),
+      chapters(id),
+      (S.mode === 'mal' && mal && token()) ? malApi(`/manga/${mal}?fields=my_list_status`).then(r => { malState[mal] = r.my_list_status || {}; }).catch(() => {}) : null
+    ]);
+    if(my !== nav) return;
+    const m = d.data, lib = store.get('lib', {}), prog = store.get('prog', {})[id];
+    const malRead = mal && malState[mal] ? malState[mal].num_chapters_read || 0 : 0;
+    const localNum = prog && parseFloat(prog.num);
+    const readUpTo = Math.max(isFinite(localNum) ? localNum : 0, malRead);
+    const q = mal ? '&mal=' + mal : '';
+    const lnk = c => `#/read/${c.id}?m=${id}${q}`;
+    let startCh = chs[0];
+    if(prog && chs.find(c => c.id === prog.id)) startCh = chs.find(c => c.id === prog.id);
+    else if(malRead) startCh = chs.find(c => parseFloat(c.attributes.chapter) > malRead) || chs[chs.length - 1];
+    let desc = (m.attributes.description.en || '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[*_`#>]/g, '').slice(0, 450);
+    let desc_ = desc, asc = false;
+    const list = () => (asc ? chs : [...chs].reverse()).map(c => {
+      const n = c.attributes.chapter, rd = n != null && parseFloat(n) <= readUpTo;
+      return `<a class="ch ${rd ? 'read' : ''}" href="${lnk(c)}"><span>${n != null ? 'Ch. ' + esc(n) : 'Oneshot'}${c.attributes.title ? ' — ' + esc(c.attributes.title) : ''}</span><small>${esc((c.attributes.publishAt || '').slice(0,10))}</small></a>`;
+    }).join('');
+    $('main').innerHTML = `<div class="hero"><img src="${cover(m,512)}" alt=""><div><h2>${esc(titleOf(m))}</h2><p class="mut" style="font-size:13px">${esc(m.attributes.status || '')}${m.attributes.year ? ' · ' + m.attributes.year : ''} · ${chs.length} chapters (${esc(S.lang)})</p>
+      ${mal && malState[mal] ? `<p style="color:var(--gold);font-size:13px">MAL: ${esc(malState[mal].status || 'not on list')}${malRead ? ' · ch. ' + malRead : ''}</p>` : ''}</div></div>
+      <p class="desc">${esc(desc_)}${desc_.length >= 450 ? '…' : ''}</p>
+      <div class="row">${startCh ? `<a class="btn" href="${lnk(startCh)}">${prog || malRead ? 'Continue' : 'Start reading'}</a>` : ''}<button class="ghost" id="fav">${lib[id] ? '★ Saved' : '☆ Save'}</button><button class="ghost" id="srt">Newest first ↕</button></div>
+      <div id="chl">${chs.length ? list() : '<p class="mut">No chapters hosted on MangaDex in this language.</p><div id="alt"></div>'}</div>`;
+    if(!chs.length) fallback(m, id);
+    $('#fav').onclick = () => { const l = store.get('lib', {}); if(l[id]){ delete l[id]; } else l[id] = { title:titleOf(m), cover:cover(m,256) }; store.set('lib', l); $('#fav').textContent = l[id] ? '★ Saved' : '☆ Save'; };
+    $('#srt').onclick = () => { asc = !asc; $('#chl').innerHTML = list(); $('#srt').textContent = asc ? 'Oldest first ↕' : 'Newest first ↕'; };
+  }catch(e){ if(my === nav) $('main').innerHTML = err(e); }
+}
+
+const LINKS = { raw:'Official raw', engtl:'Official English', amz:'Amazon', ebj:'eBookJapan', bw:'BookWalker', mu:'MangaUpdates', al:'AniList', mal:'MyAnimeList' };
+const LINK_BASE = { mu:'https://www.mangaupdates.com/series/', al:'https://anilist.co/manga/', mal:'https://myanimelist.net/manga/' };
+async function fallback(m, id){
+  const box = $('#alt'); if(!box) return;
+  let h = '';
+  const langs = (m.attributes.availableTranslatedLanguages || []).filter(l => l !== S.lang);
+  if(langs.length) h += `<p class="mut" style="margin:12px 0 6px">Other languages with chapters:</p><div class="row">${langs.map(l => `<button class="ghost" data-l="${esc(l)}">${esc(l)}</button>`).join('')}</div>`;
+  try{
+    const d = await md(`/manga/${id}/feed`, { limit:100, 'order[chapter]':'desc', contentRating:ratings(), includeExternalUrl:'1', includeEmptyPages:'1' });
+    const ext = d.data.filter(c => c.attributes.externalUrl && /^https:\/\//.test(c.attributes.externalUrl));
+    if(ext.length) h += `<p class="mut" style="margin:12px 0 6px">Official external chapters (opens publisher site):</p>` + ext.slice(0, 40).map(c => `<a class="ch" target="_blank" rel="noopener noreferrer" href="${esc(c.attributes.externalUrl)}"><span>${c.attributes.chapter != null ? 'Ch. ' + esc(c.attributes.chapter) : 'Chapter'}${c.attributes.title ? ' — ' + esc(c.attributes.title) : ''}</span><small>${esc(new URL(c.attributes.externalUrl).hostname)}</small></a>`).join('');
+  }catch{}
+  const lk = m.attributes.links || {}, parts = [];
+  for(const k of Object.keys(LINKS)){
+    if(!lk[k]) continue;
+    const u = /^https?:\/\//.test(lk[k]) ? lk[k] : (LINK_BASE[k] ? LINK_BASE[k] + lk[k] : '');
+    if(u) parts.push(`<a class="chip" target="_blank" rel="noopener noreferrer" href="${esc(u)}">${LINKS[k]}</a>`);
+  }
+  if(parts.length) h += `<p class="mut" style="margin:12px 0 6px">Where to read or buy it:</p><div class="chips" style="flex-wrap:wrap">${parts.join('')}</div>`;
+  box.innerHTML = h || '<p class="mut">No other sources found for this title.</p>';
+  box.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { S.lang = b.dataset.l; saveSettings(); route(); });
+}
+
+async function readView(cid, mid, mal){
+  const my = ++nav;
+  document.body.classList.add('reading');
+  app.innerHTML = '<p class="mut pad">Loading chapter…</p>';
+  try{
+    const [srv, chs] = await Promise.all([jget(`${MD}/at-home/server/${cid}`), chapters(mid)]);
+    if(my !== nav) return;
+    const i = chs.findIndex(c => c.id === cid), c = chs[i] || { attributes:{} };
+    const num = c.attributes.chapter, prev = chs[i - 1], next = chs[i + 1];
+    const ds = S.dataSaver && srv.chapter.dataSaver && srv.chapter.dataSaver.length;
+    const files = ds ? srv.chapter.dataSaver : srv.chapter.data;
+    const base = `${srv.baseUrl}/${ds ? 'data-saver' : 'data'}/${srv.chapter.hash}/`;
+    const urls = files.map(f => base + f);
+    const link = ch => ch ? `#/read/${ch.id}?m=${mid}${mal ? '&mal=' + mal : ''}` : null;
+    const prog = store.get('prog', {}); prog[mid] = { id:cid, num:num || '' }; store.set('prog', prog);
+    let done = false;
+    const finish = () => { if(done) return; done = true; syncMal(mal, num); };
+    app.innerHTML = `<div class="rtop"><a href="#/title/${mid}${mal ? '?mal=' + mal : ''}">‹ Back</a><b>${num ? 'Ch. ' + esc(num) : 'Oneshot'}</b><button class="ghost" id="mode"></button></div><div id="stage"></div>`;
+    const stage = $('#stage');
+    const nextBtns = () => `<div class="end" id="end">${prev ? `<a class="btn ghost" href="${link(prev)}">‹ Previous</a>` : ''}${next ? `<a class="btn" href="${link(next)}">Next chapter ›</a>` : `<a class="btn ghost" href="#/title/${mid}${mal ? '?mal=' + mal : ''}">Caught up · Back</a>`}</div>`;
+    function draw(){
+      if(keyH){ document.removeEventListener('keydown', keyH); keyH = null; }
+      $('#mode').textContent = S.readerMode === 'paged' ? 'Strip view' : 'Paged view';
+      if(S.readerMode === 'paged'){
+        let k = 0;
+        stage.className = 'paged';
+        stage.innerHTML = `<img id="pimg" alt=""><div id="pc"></div>`;
+        const show = () => { $('#pimg').src = urls[k]; $('#pc').textContent = `${k + 1} / ${urls.length}`; if(urls[k + 1]) new Image().src = urls[k + 1]; if(k === urls.length - 1) finish(); };
+        const go = d => {
+          if(d > 0){ if(k < urls.length - 1){ k++; show(); } else if(next) location.hash = link(next); else toast('Last page'); }
+          else { if(k > 0){ k--; show(); } else if(prev) location.hash = link(prev); }
+        };
+        stage.onclick = e => go(e.clientX < innerWidth / 2 ? -1 : 1);
+        keyH = e => { if(e.key === 'ArrowRight') go(1); if(e.key === 'ArrowLeft') go(-1); };
+        document.addEventListener('keydown', keyH);
+        show();
+      } else {
+        stage.className = ''; stage.onclick = null;
+        stage.innerHTML = urls.map((u, n) => `<img loading="lazy" src="${u}" alt="Page ${n + 1}" onload="this.classList.add('ok')" onerror="if(!this.dataset.r){this.dataset.r=1;this.src=this.src+'?r=1'}">`).join('') + nextBtns();
+        new IntersectionObserver(es => { if(es[0].isIntersecting) finish(); }, { threshold:.1 }).observe($('#end'));
+      }
+    }
+    $('#mode').onclick = () => { S.readerMode = S.readerMode === 'paged' ? 'strip' : 'paged'; saveSettings(); draw(); window.scrollTo(0, 0); };
+    draw();
+    window.scrollTo(0, 0);
+  }catch(e){ if(my === nav) app.innerHTML = `<div class="pad">${err(e)}<p style="margin-top:12px"><a class="btn ghost" href="#/title/${mid}${mal ? '?mal=' + mal : ''}">‹ Back</a></p></div>`; }
+}
+
+function settingsView(){
+  ++nav;
+  const mal = S.mode === 'mal';
+  const langs = [['en','English'],['es','Español'],['es-la','Español (LatAm)'],['fr','Français'],['de','Deutsch'],['pt-br','Português (BR)'],['id','Indonesian'],['ru','Русский'],['it','Italiano'],['vi','Tiếng Việt'],['tr','Türkçe'],['ar','العربية'],['ja','日本語']];
+  shell('settings', `<div class="set">
+    <label>Chapter language<select id="lang">${langs.map(([k,l]) => `<option value="${k}" ${S.lang===k?'selected':''}>${l}</option>`).join('')}</select></label>
+    <label>Reader<select id="rm"><option value="strip" ${S.readerMode==='strip'?'selected':''}>Vertical strip</option><option value="paged" ${S.readerMode==='paged'?'selected':''}>Paged (tap / arrow keys)</option></select></label>
+    <label class="chk"><input type="checkbox" id="ds" ${S.dataSaver?'checked':''}>Data saver images</label>
+    <label class="chk"><input type="checkbox" id="ad" ${S.adult?'checked':''}>Include 18+ titles</label>
+    ${mal ? `<label class="chk"><input type="checkbox" id="as" ${S.autoSync?'checked':''}>Auto-sync progress to MAL</label>
+    <label>MAL Client ID<input id="cid" value="${esc(S.malClientId)}"></label>
+    <label>Proxy URL<input id="px" value="${esc(S.proxy)}"></label>
+    <p class="mut" style="font-size:12px">MAL redirect URL: <code>${esc(redirectUri())}</code></p>
+    ${token() ? '<button class="ghost" id="lo">Sign out of MAL</button>' : ''}` : ''}
+    <label>Start-screen artwork<input type="file" id="hero" accept="image/*"></label>
+    ${store.get('hero', '') ? '<button class="ghost" id="herox">Remove artwork</button>' : ''}
+    <button class="ghost" id="sw">Switch mode</button></div>`);
+  $('#hero').onchange = e => { if(e.target.files[0]) pickHero(e.target.files[0]); };
+  if($('#herox')) $('#herox').onclick = () => { store.del('hero'); applyHero(); settingsView(); };
+  const bind = (id, fn) => { const el = $(id); if(el) el.onchange = () => { fn(el); saveSettings(); }; };
+  bind('#lang', e => S.lang = e.value); bind('#rm', e => S.readerMode = e.value);
+  bind('#ds', e => S.dataSaver = e.checked); bind('#ad', e => S.adult = e.checked); bind('#as', e => S.autoSync = e.checked);
+  bind('#cid', e => S.malClientId = e.value.trim()); bind('#px', e => S.proxy = e.value.trim() || '/api/mal');
+  if($('#lo')) $('#lo').onclick = () => { malLogout(); toast('Signed out'); settingsView(); };
+  $('#sw').onclick = () => { store.del('mode'); S.mode = null; route(); };
+}
+
+/* ---------- router ---------- */
+function route(){
+  if(keyH){ document.removeEventListener('keydown', keyH); keyH = null; }
+  document.body.classList.remove('reading');
+  if(!S.mode) return gate();
+  const [path, qs] = (location.hash.slice(1) || '/').split('?');
+  const q = new URLSearchParams(qs || ''), p = path.split('/').filter(Boolean), v = p[0] || '';
+  if(v === 'title') return titleView(p[1], q.get('mal'));
+  if(v === 'read') return readView(p[1], q.get('m'), q.get('mal'));
+  if(v === 'find') return findView(p[1], q.get('q') || '');
+  if(v === 'settings') return settingsView();
+  if(v === 'library') return libraryView();
+  if(v === 'malsearch') return malSearchView(q.get('q') || '');
+  if(v === 'mal') return malListView(q.get('s') || 'reading');
+  if(v === 'browse') return browseView(q.get('q') || '');
+  return S.mode === 'mal' ? malListView('reading') : browseView('');
+}
+addEventListener('hashchange', route);
+
+if('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+(async function boot(){
+  const p = new URLSearchParams(location.search);
+  if(p.get('code') || p.get('error')){
+    history.replaceState(null, '', location.pathname + '#/');
+    if(p.get('code')){
+      try{ await malExchange(p.get('code'), p.get('state')); S.mode = 'mal'; store.set('mode', 'mal'); toast('Signed in to MAL'); }
+      catch(e){ toast('Login failed: ' + e.message); }
+    } else toast('Login cancelled');
+  }
+  route();
+})();
+</script>
+</body>
+</html>
