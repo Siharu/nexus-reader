@@ -1,0 +1,36 @@
+name: The 13th Night — Headless Bug Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  headless-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install headless Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run automated game tests
+        run: npm test
+
+      - name: Upload test report and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: the-13th-night-headless-report
+          path: .test-results/
+          if-no-files-found: warn

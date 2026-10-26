@@ -1,0 +1,14 @@
+{
+  "name": "the-13th-night-headless-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Headless browser and story-progression smoke tests for The 13th Night",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node headless-test.js",
+    "test:static": "node headless-test.js --static-only"
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0"
+  }
+}
